@@ -1,4 +1,9 @@
 <resources>
     <string name="app_name">SimulatorCabbie</string>
     <string name="title_activity_maps">Map</string>
+    <string name="hint_search">Ubication</string>
+    <string name="text_button_search">Search</string>
+    <string name="text_button_motorcycle">motorcycle</string>
+    <string name="text_button_taxi">Taxi</string>
+    <string name="text_button_van">van</string>
 </resources>
