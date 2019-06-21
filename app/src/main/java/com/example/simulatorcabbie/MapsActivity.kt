@@ -6,23 +6,29 @@ import android.content.pm.PackageManager
 import android.content.res.Resources
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.graphics.Color
 import android.location.Address
 import android.location.Geocoder
+import android.location.Location
 import android.os.Bundle
-import android.support.v4.app.ActivityCompat
-import android.support.v4.content.ContextCompat
-import android.support.v7.app.AppCompatActivity
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
+import androidx.appcompat.app.AppCompatActivity
+import android.util.Log
+import android.view.LayoutInflater
 import android.view.View
 import android.widget.EditText
+import android.widget.TextView
 import com.google.android.gms.common.ConnectionResult
 import com.google.android.gms.common.GooglePlayServicesUtil
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
-import com.google.android.gms.maps.model.BitmapDescriptorFactory
-import com.google.android.gms.maps.model.LatLng
-import com.google.android.gms.maps.model.MarkerOptions
+import com.google.android.gms.maps.model.*
+import kotlinx.android.synthetic.main.activity_maps.*
+import kotlinx.android.synthetic.main.infowindow_layout.*
+import kotlinx.android.synthetic.main.infowindow_layout.view.*
 import java.io.IOException
 import java.util.*
 
@@ -30,6 +36,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
 
     private lateinit var mMap: GoogleMap
     private val REQUEST_LOCATION_PERMISSION = 1
+    var mutableList = mutableListOf<LatLng>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -46,8 +53,8 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
         val mapFragment = supportFragmentManager
             .findFragmentById(R.id.map) as SupportMapFragment?
         mapFragment!!.getMapAsync(this)
-    }
 
+    }
     /**
      * Manipulates the map once available.
      * This callback is triggered when the map is ready to be used.
@@ -70,7 +77,6 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
 
 
         mMap.moveCamera(CameraUpdateFactory.newLatLng(currentLocation))
-
         enableMyLocation()
     }
 
@@ -81,8 +87,8 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
             ) == PackageManager.PERMISSION_GRANTED
         ) {
             mMap.isMyLocationEnabled = true
-            //            mMap.moveCamera(CameraUpdateFactory.newLatLng(mMap.getMyLocation()));
-            //            mMap.animateCamera(CameraUpdateFactory.zoomBy(20));
+                      // mMap.moveCamera(CameraUpdateFactory.newLatLng(mMap.getMyLocation()));
+                      //mMap.animateCamera(CameraUpdateFactory.zoomBy(200F))
         } else {
             ActivityCompat.requestPermissions(
                 this,
@@ -105,7 +111,15 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
         }
     }
 
+
     private fun setMapMarkerLongClick(map: GoogleMap, bitmap: Bitmap) {
+        var mDriver = Driver()
+
+        mDriver.name = "Turco"
+        mDriver.placa = "ABC123"
+        mDriver.estado = "ACTIVO"
+        mDriver.imagen = bitmap
+
         map.setOnMapLongClickListener { latLng ->
             val snippet = String.format(
                 Locale.getDefault(),
@@ -113,53 +127,103 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
                 latLng.latitude,
                 latLng.longitude
             )
+            // marker común
 
-            map.addMarker(
+            var mMarkerTest: Marker = map.addMarker(
                 MarkerOptions()
                     .position(latLng)
                     .icon(BitmapDescriptorFactory.fromBitmap(bitmap))
                     .title("Conductor")
                     .snippet(snippet)
             )
+
+            //mMarkerTest.showInfoWindow()
+            /**map.addMarker(
+            MarkerOptions()
+            .position(latLng)
+            .icon(BitmapDescriptorFactory.fromBitmap(bitmap))
+            .title("Conductor")
+            .snippet(snippet)
+            )**/
+            // marker con InfoWindowCustom
+
+
+            //map.setInfoWindowAdapter(CustomInfoWindowAdapter(LayoutInflater.from(this), "Turco", "ABC123","ACTIVO", bitmap))
+            var infoWindowAdapter = object : GoogleMap.InfoWindowAdapter {
+                override fun getInfoContents(marker: Marker): View? {
+                    var v = LayoutInflater.from(baseContext).inflate(R.layout.infowindow_layout, null)
+
+                    v.info_window_nombre.text = mDriver.name
+                    v.info_window_placas.text = mDriver.placa
+                    v.info_window_estado.text = mDriver.estado
+                    v.info_window_imagen.setImageBitmap(mDriver.imagen)
+                    return v
+                }
+
+                override fun getInfoWindow(marker: Marker): View? {
+                    return null
+                }
+            }
+            map.setInfoWindowAdapter(infoWindowAdapter)
+            mutableList.add(latLng)
         }
     }
 
+
     fun onClick(v: View) {
-        if (v.id == R.id.button_search) {
-            val i_location = findViewById<EditText>(R.id.editText)
-            val location = i_location.text.toString()
-            var addressList: List<Address>? = null
-            val mark = MarkerOptions()
-            if (location != "") {
-                val geocoder = Geocoder(this)
-                try {
-                    addressList = geocoder.getFromLocationName(location, 5)
-                } catch (e: IOException) {
-                    e.printStackTrace()
+        val bitmap:Bitmap
+        when (v.id){
+            R.id.button_search -> {
+                val location = editText.text.toString()
+                var addressList: List<Address>? = null
+                val mark = MarkerOptions()
+                if (location != "") {
+                    val geocoder = Geocoder(this)
+                    try {
+                        addressList = geocoder.getFromLocationName(location, 5)
+                    } catch (e: IOException) {
+                        e.printStackTrace()
+                    }
+
+                    for (i in addressList!!.indices) {
+                        val myAddress = addressList[i]
+                        val latLng = LatLng(myAddress.latitude, myAddress.longitude)
+                        mark.position(latLng)
+                        mark.title(myAddress.featureName)
+
+                        mMap.addMarker(mark)
+                        mMap.animateCamera(CameraUpdateFactory.newLatLng(latLng))
+                    }
                 }
 
-                for (i in addressList!!.indices) {
-                    val myAddress = addressList[i]
-                    val latLng = LatLng(myAddress.latitude, myAddress.longitude)
-                    mark.position(latLng)
-                    mark.title(myAddress.featureName)
-
-                    mMap.addMarker(mark)
-                    mMap.animateCamera(CameraUpdateFactory.newLatLng(latLng))
-                }
             }
-        }
-        if (v.id == R.id.button_motorcycler) {
-            val bitmap = decodeSampledBitmapFromResource(resources, R.drawable.scooter_image, SIZE_ICON, SIZE_ICON)
-            setMapMarkerLongClick(mMap, bitmap)
-        }
-        if (v.id == R.id.button_van) {
-            val bitmap = decodeSampledBitmapFromResource(resources, R.drawable.van_image, SIZE_ICON, SIZE_ICON)
-            setMapMarkerLongClick(mMap, bitmap)
-        }
-        if (v.id == R.id.button_taxi) {
-            val bitmap = decodeSampledBitmapFromResource(resources, R.drawable.taxi_image, SIZE_ICON, SIZE_ICON)
-            setMapMarkerLongClick(mMap, bitmap)
+            R.id.button_motorcycler -> {
+                bitmap = decodeSampledBitmapFromResource(resources, R.drawable.scooter_image, SIZE_ICON, SIZE_ICON)
+                setMapMarkerLongClick(mMap, bitmap)
+
+            }R.id.button_van ->{
+                bitmap = decodeSampledBitmapFromResource(resources, R.drawable.van_image, SIZE_ICON, SIZE_ICON)
+                setMapMarkerLongClick(mMap, bitmap)
+            }
+            R.id.button_taxi-> {
+                val bitmap = decodeSampledBitmapFromResource(resources, R.drawable.taxi_image, SIZE_ICON, SIZE_ICON)
+                setMapMarkerLongClick(mMap, bitmap)
+            }
+            R.id.button_trazar-> {
+
+
+                val line = mMap.addPolyline(
+                    PolylineOptions()
+                        .addAll(mutableList)
+                        .width(5f)
+                        .color(Color.RED)
+                )
+
+            }
+            R.id.button_clear -> {
+                mMap.clear()
+                mutableList.clear()
+            }
         }
     }
 
@@ -202,6 +266,6 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
     companion object {
         private const val lat_Initial = -37.328242
         private const val lng_Initial = -59.136777
-        private const val SIZE_ICON =35
+        private const val SIZE_ICON = 35
     }
 }

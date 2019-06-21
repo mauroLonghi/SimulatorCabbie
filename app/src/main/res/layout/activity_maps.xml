@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
                 xmlns:tools="http://schemas.android.com/tools"
+                android:background="@drawable/gradient"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent">
 
@@ -14,35 +15,74 @@
             android:layout_alignParentStart="true"
             android:layout_alignParentBottom="true"
             tools:context=".MapsActivity"/>
-
-    <EditText
-            android:id="@+id/editText"
-            android:layout_width="@dimen/size_editText_search"
+    <LinearLayout
+            android:id="@+id/linear_search"
+            android:layout_width="match_parent"
+            android:layout_height="55dp"
+            android:gravity="center"
+            android:orientation="horizontal">
+        <EditText
+                android:id="@+id/editText"
+                android:layout_width="@dimen/size_editText_search"
+                android:layout_height="50dp"
+                android:background="@drawable/btn_outlined"
+                android:ems="10"
+                android:padding="10dp"
+                android:hint="@string/hint_search"
+                android:inputType="textPersonName"/>
+        <Button
+            android:id="@+id/button_search"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:ems="10"
-            android:hint="@string/hint_search"
-            android:inputType="textPersonName"/>
+            android:background="@drawable/btn_outlined"
+            android:textAllCaps="false"
+            android:padding="10dp"
+            android:drawableLeft="@drawable/outline_search"
+            style="@style/ButtonLined"
+            android:layout_below="@+id/editText"
+            android:onClick="onClick"
+            android:text="@string/text_button_search"/>
+        <Button
+                android:id="@+id/button_clear"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="@drawable/btn_trace_outlined"
+                android:textAllCaps="false"
+                android:padding="10dp"
+                style="@style/ButtonLined"
+                android:layout_below="@+id/editText"
+                android:onClick="onClick"
+                android:text="@string/text_clear"/>
+
+    </LinearLayout>
 
     <LinearLayout
             android:id="@+id/buttons_conteiner"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_below="@+id/editText"
+            android:layout_height="55dp"
+            android:layout_below="@+id/linear_search"
             android:gravity="center"
             android:orientation="horizontal">
-
         <Button
-                android:id="@+id/button_search"
+                android:id="@+id/button_trazar"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_below="@+id/editText"
                 android:onClick="onClick"
-                android:text="@string/text_button_search"/>
+                android:textAllCaps="false"
+                style="@style/ButtonTraceLined"
+                android:layout_toRightOf="@+id/editText"
+                android:text="Trazar"/>
 
         <Button
                 android:id="@+id/button_motorcycler"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:drawableLeft="@drawable/outline_moto"
+                android:drawablePadding="11dp"
+                android:textAllCaps="false"
+                style="@style/ButtonLined"
+                android:padding="10dp"
+
                 android:onClick="onClick"
                 android:text="@string/text_button_motorcycle"/>
 
@@ -50,6 +90,11 @@
                 android:id="@+id/button_van"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:padding="10dp"
+                android:textAllCaps="false"
+                android:drawableLeft="@drawable/outline_bus"
+                android:drawablePadding="5dp"
+                style="@style/ButtonLined"
                 android:onClick="onClick"
                 android:text="@string/text_button_van"/>
 
@@ -57,6 +102,10 @@
                 android:id="@+id/button_taxi"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:padding="10dp"
+                android:drawableLeft="@drawable/outline_taxi"
+                style="@style/ButtonLined"
+                android:textAllCaps="false"
                 android:onClick="onClick"
                 android:text="@string/text_button_taxi"/>
 
